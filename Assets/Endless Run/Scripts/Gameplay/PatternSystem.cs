@@ -91,9 +91,9 @@ public class PatternSystem : MonoBehaviour {
 	public GameObject spawnObj_Pref;
 	public GameObject floor_Pref;
 	
-	[HideInInspector]
+	//[HideInInspector]
 	public List<SetBuilding> patternBuilding = new List<SetBuilding>();
-	[HideInInspector]
+	//[HideInInspector]
 	public List<SetItem> patternItem = new List<SetItem>();
 	private int[] amountBuildingSpawn;
 	private int[] amountItemSpawn;
@@ -180,17 +180,24 @@ public class PatternSystem : MonoBehaviour {
 	}
 	
 	private void ConvertPatternToItemTpyeSet(){
-		int i = 0;
-		while(i < patternItem.Count){
+		for(int i=0;i<patternItem.Count;i++){
 			_itemType.Add(new SetFloatItemType());
-			int j = 0;
-			while(j < item_Pref.Count){
+			for(int j=0;j<item_Pref.Count;j++){
 				_itemType[i].item.Add(0);
-				j++;
 			}
-			i++;	
 		}
-		i = 0;
+		
+		for(int i=0;i<patternItem.Count;i++){
+			for(int j=0;j<patternItem[i].itemType_Left.Length;j++){
+				for(int k=0;k<item_Pref.Count;k++){
+					if(patternItem[i].itemType_Left[j] == k+1){
+						_itemType[i].item[k] += 1;
+					}
+				}
+			}
+		}
+		/*
+		int i = 0;
 		while(i < patternItem.Count){
 			int j = 0;
 			//Left
@@ -233,6 +240,7 @@ public class PatternSystem : MonoBehaviour {
 			}
 			i++;
 		}
+		*/
 	}
 	
 	//Building 
