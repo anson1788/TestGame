@@ -149,6 +149,28 @@ public class PatternSystem : MonoBehaviour {
 		//25%
 		ConvertPatternToItemTpyeSet();
 		itemTypeMax = new SetFloatItemType();
+		for(int i=0;i<item_Pref.Count;i++){
+			itemTypeMax.item.Add(0);
+		}
+		loadingPercent = 1;
+		for(int i=0;i<_itemType.Count;i++){
+			for(int j=0;j<_itemType[i].item.Count;j++){
+				if(_itemType[i].item[j] > itemTypeMax.item[j]){
+					itemTypeMax.item[j] = _itemType[i].item[j];	
+				}
+			}
+		}
+		loadingPercent = 3;
+		amountItemSpawn = new int[itemTypeMax.item.Count];
+		for(int i=0;i<amountItemSpawn.Length;i++){
+			amountItemSpawn[i] = itemTypeMax.item[i] * amountFloorSpawn;
+			amountItemSpawn[i]++;
+		}
+		yield return 0;
+		loadingPercent = 5;
+		StartCoroutine(CalAmountBuilding());
+		
+		/*
 		int i = 0;
 		while(i < item_Pref.Count){
 			itemTypeMax.item.Add(0);
@@ -177,6 +199,7 @@ public class PatternSystem : MonoBehaviour {
 		yield return 0;
 		loadingPercent = 5;
 		StartCoroutine(CalAmountBuilding());
+		*/
 	}
 	
 	private void ConvertPatternToItemTpyeSet(){
@@ -191,6 +214,22 @@ public class PatternSystem : MonoBehaviour {
 			for(int j=0;j<patternItem[i].itemType_Left.Length;j++){
 				for(int k=0;k<item_Pref.Count;k++){
 					if(patternItem[i].itemType_Left[j] == k+1){
+						_itemType[i].item[k] += 1;
+					}
+				}
+			}
+
+			for(int j=0;j<patternItem[i].itemType_Middle.Length;j++){
+				for(int k=0;k<item_Pref.Count;k++){
+					if(patternItem[i].itemType_Middle[j] == k+1){
+						_itemType[i].item[k] += 1;
+					}
+				}
+			}
+
+			for(int j=0;j<patternItem[i].itemType_Right.Length;j++){
+				for(int k=0;k<item_Pref.Count;k++){
+					if(patternItem[i].itemType_Right[j] == k+1){
 						_itemType[i].item[k] += 1;
 					}
 				}
