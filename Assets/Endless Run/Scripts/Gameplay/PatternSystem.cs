@@ -289,6 +289,27 @@ public class PatternSystem : MonoBehaviour {
 		//50%
 		ConvertPatternToBuildingTpyeSet();
 		buildTypeMax = new SetFloatItemType();
+		for(int i=0;i<building_Pref.Count;i++){
+			buildTypeMax.item.Add(0);
+		}
+		loadingPercent = 7;
+		for(int i=0;i<_buildingType.Count;i++){
+			for(int j=0;j<_buildingType[i].item.Count;j++){
+				if(_buildingType[i].item[j] > buildTypeMax.item[j]){
+					buildTypeMax.item[j] = _buildingType[i].item[j];	
+				}
+			}
+		}
+		loadingPercent = 9;
+		amountBuildingSpawn = new int[buildTypeMax.item.Count];
+		for(int i=0;i<amountBuildingSpawn.Length;i++){
+			amountBuildingSpawn[i] = buildTypeMax.item[i] * amountFloorSpawn;
+			amountBuildingSpawn[i]++;
+		}
+		yield return 0;
+		loadingPercent = 10;
+		StartCoroutine(InitBuilding());
+		/*
 		int i = 0;
 		while(i < building_Pref.Count){
 			buildTypeMax.item.Add(0);
@@ -317,9 +338,33 @@ public class PatternSystem : MonoBehaviour {
 		yield return 0;
 		loadingPercent = 10;
 		StartCoroutine(InitBuilding());
+		*/
 	}
 	
 	private void ConvertPatternToBuildingTpyeSet(){
+		for(int i=0;i<patternBuilding.Count;i++){
+			_buildingType.Add(new SetFloatItemType());
+			for(int j=0;j<building_Pref.Count;j++){
+				_buildingType[i].item.Add(0);
+			}
+		}
+		for(int i=0;i<patternBuilding.Count;i++){
+			for(int j=0;j<patternBuilding[i].stateBuilding_Left.Length;j++){
+				for(int k=0;k<patternBuilding.Count;k++){
+					if(patternBuilding[i].stateBuilding_Left[j] == k+1){
+						_buildingType[i].item[k] += 1;
+					}
+				}
+			}
+			for(int j=0;j<patternBuilding[i].stateBuilding_Right.Length;j++){
+				for(int k=0;k<patternBuilding.Count;k++){
+					if(patternBuilding[i].stateBuilding_Right[j] == k+1){
+						_buildingType[i].item[k] += 1;
+					}
+				}
+			}
+		}
+		/*
 		int i = 0;
 		while(i < patternBuilding.Count){
 			_buildingType.Add(new SetFloatItemType());
@@ -359,11 +404,64 @@ public class PatternSystem : MonoBehaviour {
 				j++;
 			}
 			i++;
-		}
+		}*/
 	}
 	
 	IEnumerator InitBuilding(){
 		//75%
+		for(int i=0;i<building_Pref.Count;i++){
+			for(int j=0;j<amountBuildingSpawn[i];j++){
+				GameObject go = (GameObject)Instantiate(building_Pref[i], posStart, Quaternion.identity);
+				go.name = "Building["+i+"]["+j+"]";
+				building_Obj.Add(go);
+				Building building = go.GetComponent<Building>();
+				building.buildIndex = i;
+				building_Script.Add(building);
+				yield return 0;
+			}
+			yield return 0;
+		}
+		loadingPercent = 30;
+		for(int i=0;i<item_Pref.Count;i++){
+			item_Type_Script.Add(new Item_Type());
+			amount_Item_Pattern_Left.Add(0);
+			amount_Item_Pattern_Middle.Add(0);
+			amount_Item_Pattern_Right.Add(0);
+			for(int j=0;j<amountBuildingSpawn[i];j++){
+				GameObject go = (GameObject)Instantiate(item_Pref[i], posStart, Quaternion.identity);
+				go.name = "Item["+i+"]["+j+"]";
+				item_Obj.Add(go);
+				item_Type_Script[i].itemList.Add(go.GetComponent<Item>());
+				j++;
+				yield return 0;				
+			}
+		}
+		loadingPercent = 70;
+		for(int i=0;i<amountFloorSpawn;i++){
+			GameObject go = (GameObject)Instantiate(floor_Pref, posStart, Quaternion.identity);
+			go.name = "Floor["+i+"]";
+			floor_Obj.Add(go);
+			floor_Slot.Add(new Floor());
+			floor_Slot[i].floor_Slot_Left = new bool[defaultPosBuilding_Left.Count];
+			floor_Slot[i].floor_Slot_Right = new bool[defaultPosBuilding_Right.Count];
+			floor_item_Slot.Add(new FloorItemSlot());
+			floor_item_Slot[i].floor_Slot_Left = new bool[defaultPosItem_Left.Count];
+			floor_item_Slot[i].floor_Slot_Middle = new bool[defaultPosItem_Middle.Count];
+			floor_item_Slot[i].floor_Slot_Right = new bool[defaultPosItem_Right.Count];
+			QueueFloor qFloor = new QueueFloor();
+			qFloor.floorObj = floor_Obj[i];
+			qFloor.floorClass = floor_Slot[i];
+			qFloor.floorItemSlotClass = floor_item_Slot[i];
+			queneFloor.Add(qFloor);
+			i++;
+			yield return 0;
+		}
+		loadingPercent = 100;
+		spawnObj_Obj = (GameObject)Instantiate(spawnObj_Pref, posStart, Quaternion.identity);
+		colSpawnCheck = spawnObj_Obj.GetComponentInChildren<ColliderSpawnCheck>();
+		colSpawnCheck.headParent = spawnObj_Obj;
+		StartCoroutine(SetPosStarter());
+		/*
 		int i = 0;
 		while(i < building_Pref.Count){
 			int j = 0;
@@ -425,14 +523,23 @@ public class PatternSystem : MonoBehaviour {
 		colSpawnCheck = spawnObj_Obj.GetComponentInChildren<ColliderSpawnCheck>();
 		colSpawnCheck.headParent = spawnObj_Obj;
 		StartCoroutine(SetPosStarter());
+		*/
 	}
 	
 	IEnumerator SetPosStarter(){
 		//100%
 		Vector3 pos = Vector3.zero;
 		pos.z = nextPosFloor;
-		int i = 0;
+	
+		/*
 		while(i < floor_Obj.Count){
+			AddBuildingToFloor(queneFloor[i]);
+			queneFloor[i].floorObj.transform.position = pos;
+			pos.z += nextPosFloor;
+			i++;
+			yield return 0;
+		}*/
+		for(int i = 0;i<floor_Obj.Count;i++){
 			AddBuildingToFloor(queneFloor[i]);
 			queneFloor[i].floorObj.transform.position = pos;
 			pos.z += nextPosFloor;
